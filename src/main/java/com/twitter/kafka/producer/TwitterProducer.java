@@ -1,5 +1,7 @@
 package com.twitter.kafka.producer;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -29,13 +31,27 @@ import com.twitter.hbc.httpclient.auth.OAuth1;
 
 public class TwitterProducer {
     final Logger logger = LoggerFactory.getLogger(TwitterProducer.class);
-    final String consumerKey = "NOpAy0T0GIIzc1BMWCaj9OyIC";
-    final String consumerSecret = "j93ipFcws4OpKgxVps2piuh6zGCsigUT5aFlyhaZHAE0uHQwZS";
-    final String token = "23050618-nfs2JvlI5BeKBLT7qsJMVoPWfXSRuIdcpneolVb0t";
-    final String secret = "0jBTKdgylyXwx7vE5LTilDcPdD2ykTNkM9ENbA7WoItga";
+    private String consumerKey;
+    private String consumerSecret;
+    private String token;
+    private String secret;
 
 
-    public TwitterProducer(){}
+    public TwitterProducer() {
+        InputStream inputStream = TwitterProducer.class.getResourceAsStream("/twitter-config.properties");
+        Properties twitterProps = new Properties();
+        try {
+            twitterProps.load(inputStream);
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        consumerKey = twitterProps.getProperty("consumerKey");
+        consumerSecret = twitterProps.getProperty("consumerSecret");
+        token = twitterProps.getProperty("token");
+        secret = twitterProps.getProperty("secret");
+
+    }
 
     public void run()
     {
