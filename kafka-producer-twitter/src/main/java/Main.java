@@ -1,4 +1,4 @@
-package producer;
+import producer.TwitterProducer;
 
 public class Main {
     public static void main(String[] args) {
