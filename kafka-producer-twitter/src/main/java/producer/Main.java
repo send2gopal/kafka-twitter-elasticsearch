@@ -1,7 +1,6 @@
-package com.twitter.kafka.producer;
+package producer;
 
-public class Mian {
-
+public class Main {
     public static void main(String[] args) {
         TwitterProducer twitterProducer = new TwitterProducer();
         twitterProducer.run();

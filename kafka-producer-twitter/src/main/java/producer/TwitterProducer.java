@@ -1,8 +1,7 @@
-package com.twitter.kafka.producer;
+package producer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -13,7 +12,6 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,23 +57,23 @@ public class TwitterProducer {
         BlockingQueue<String> msgQueue = new LinkedBlockingQueue<String>(100);
 
         /** Declare the host you want to connect to, the endpoint, and authentication (basic auth or oauth) */
-        Hosts hosebirdHosts = new HttpHosts(Constants.STREAM_HOST);
-        StatusesFilterEndpoint hosebirdEndpoint = new StatusesFilterEndpoint();
+        Hosts twitterHttpHosts = new HttpHosts(Constants.STREAM_HOST);
+        StatusesFilterEndpoint twitterEndpoint = new StatusesFilterEndpoint();
 
         // Optional: set up some followings and track terms
         List<Long> followings = Lists.newArrayList(1234L, 566788L);
-        List<String> terms = Lists.newArrayList("kafka");
-        hosebirdEndpoint.followings(followings);
-        hosebirdEndpoint.trackTerms(terms);
+        List<String> terms = Lists.newArrayList("kafka", "usa", "politics");
+        twitterEndpoint.followings(followings);
+        twitterEndpoint.trackTerms(terms);
 
         // These secrets should be read from a config file
-        Authentication hosebirdAuth = new OAuth1(consumerKey, consumerSecret, token, secret);
+        Authentication twitterAuth = new OAuth1(consumerKey, consumerSecret, token, secret);
 
         ClientBuilder builder = new ClientBuilder()
             .name("kafkatwitterclient")                              // optional: mainly for the logs
-            .hosts(hosebirdHosts)
-            .authentication(hosebirdAuth)
-            .endpoint(hosebirdEndpoint)
+            .hosts(twitterHttpHosts)
+            .authentication(twitterAuth)
+            .endpoint(twitterEndpoint)
             .processor(new StringDelimitedProcessor(msgQueue));
 
         Client hosebirdClient = builder.build();
@@ -126,8 +124,16 @@ public class TwitterProducer {
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        //Create a safe producer
         properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
-
+        properties.setProperty(ProducerConfig.ACKS_CONFIG, "all");
+        properties.setProperty(ProducerConfig.RETRIES_CONFIG, Integer.toString(Integer.MAX_VALUE));
+        properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");
+        //Compression
+        properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+        //High throughput settings (at the expense of latency and CPU)
+        properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, "20");
+        properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, Integer.toString(32 * 1024));
         //Create a producer
         KafkaProducer<String, String> producer = new KafkaProducer<String, String>(properties);
 
