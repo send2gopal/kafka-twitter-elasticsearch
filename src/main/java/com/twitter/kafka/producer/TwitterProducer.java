@@ -1,5 +1,6 @@
 package com.twitter.kafka.producer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -10,6 +11,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ public class TwitterProducer {
     final String token = "23050618-nfs2JvlI5BeKBLT7qsJMVoPWfXSRuIdcpneolVb0t";
     final String secret = "0jBTKdgylyXwx7vE5LTilDcPdD2ykTNkM9ENbA7WoItga";
 
+
     public TwitterProducer(){}
 
     public void run()
@@ -42,9 +45,10 @@ public class TwitterProducer {
         /** Declare the host you want to connect to, the endpoint, and authentication (basic auth or oauth) */
         Hosts hosebirdHosts = new HttpHosts(Constants.STREAM_HOST);
         StatusesFilterEndpoint hosebirdEndpoint = new StatusesFilterEndpoint();
+
         // Optional: set up some followings and track terms
         List<Long> followings = Lists.newArrayList(1234L, 566788L);
-        List<String> terms = Lists.newArrayList("twitter", "api");
+        List<String> terms = Lists.newArrayList("kafka");
         hosebirdEndpoint.followings(followings);
         hosebirdEndpoint.trackTerms(terms);
 
@@ -106,6 +110,7 @@ public class TwitterProducer {
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
 
         //Create a producer
         KafkaProducer<String, String> producer = new KafkaProducer<String, String>(properties);
